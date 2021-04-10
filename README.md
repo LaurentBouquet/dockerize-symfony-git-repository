@@ -1,9 +1,8 @@
 # Dockerize a symfony git repository project 
 
-This repository is used to commit `lbouquet/symfony-php` image to Docker Hub 
+To dockerize a symfony **public** git repository project :
 
-1. Create a `.env` file
-   from an example in the *examples* folder
+1. Update `.env` file
 
 2. Execute `docker-compose up -d`
 

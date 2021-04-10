@@ -3,23 +3,19 @@ version: '3'
 services:
   # database:
   #   image: postgres:11.1-alpine
-  #   working_dir: /database
   #   volumes:
-  #     - ./database:/database
+  #     - ./database:/var/lib/pgsql/
   #   environment:
   #     - POSTGRES_DB=${DATABASE_NAME}
   #     - POSTGRES_USER=${DATABASE_USER}
   #     - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
   #   expose:
   #     - 5432
-  #   ports:
-  #     - 4447:5432
 
   database:
     image: mysql:5.7
-    working_dir: /database
     volumes:
-      - ./database:/database
+      - database:/var/lib/mysql
     environment:
       - MYSQL_DATABASE=${DATABASE_NAME}
       - MYSQL_USER=${DATABASE_USER}
@@ -29,35 +25,42 @@ services:
       - 3306
 
   php-fpm:
-    image: lbouquet/symfony-php
+    build:
+      context: ./php-fpm
     depends_on:
       - database
     environment:
+      - GIT_REPO_URL=${GIT_REPO_URL}
+      - GIT_REPO_BRANCH=${GIT_REPO_BRANCH}
+      - COMPOSER_VERSION=${COMPOSER_VERSION}      
       - APP_ENV=${APP_ENV}
       - APP_SECRET=${APP_SECRET}
       - DATABASE_URL=mysql://${DATABASE_USER}:${DATABASE_PASSWORD}@database:3306/${DATABASE_NAME}
-      # - DATABASE_URL=pgsql://${DATABASE_USER}:${DATABASE_PASSWORD}@database:5432/${DATABASE_NAME}?charset=UTF-8
-      # - DATABASE_URL=sqlite:///%kernel.project_dir%/var/${DATABASE_NAME}.db
       - MAILER_URL=${MAILER_URL}
       - ADMIN_EMAIL_ADDRESS=${ADMIN_EMAIL_ADDRESS}
       - LOCALE=${LOCALE}
     volumes:
-      - ../:/var/www
-      - ../composer.json:/var/www/composer.json
+      - web:/var/www
       - ./php-fpm/php.ini:/usr/local/etc/php/php.ini
+      - ./php-fpm/entrypoint.sh:/root/entrypoint.sh   
+    entrypoint: /root/entrypoint.sh
     expose:
       - 9000
 
   nginx:
     image: nginx:alpine
     volumes:
+      - web:/usr/share/nginx/html
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ../src:/var/www
-      - ../var/log/:/var/log/nginx
     depends_on:
       - php-fpm
     ports:
       - "${APP_PORT}:80"
 
-networks:
+
+volumes:
+    web:
+    database:
+
+# networks:
 
