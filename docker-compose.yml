@@ -49,11 +49,14 @@ services:
 
   nginx:
     image: nginx:alpine
+    depends_on:
+      - php-fpm
+    environment:
+      VIRTUAL_HOST: ${COMPOSE_PROJECT_NAME}.${DOMAINE}
+      LETSENCRYPT_HOST: ${COMPOSE_PROJECT_NAME}.${DOMAINE}
     volumes:
       - web:/usr/share/nginx/html
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-    depends_on:
-      - php-fpm
     ports:
       - "${APP_PORT}:80"
 
